@@ -1,6 +1,10 @@
 package ast
 
-import "monkeylang/token"
+import (
+	"fmt"
+
+	"monkeylang/token"
+)
 
 type ReturnStatment struct {
 	Token       token.Token
@@ -12,4 +16,8 @@ func (r *ReturnStatment) TokenLiteral() string {
 }
 
 func (r *ReturnStatment) statementNode() {
+}
+
+func (r *ReturnStatment) String() string {
+	return fmt.Sprintf("%s %v;", r.Token.Literal, r.ReturnValue.String())
 }

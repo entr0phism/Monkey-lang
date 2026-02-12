@@ -21,9 +21,14 @@ func (p *Parser) parseLetStatememt() ast.Statement {
 		return nil
 	}
 
+	// TODO: parse expression
+
 	if !p.curTokenIs(token.SEMICOLON) {
 		p.nextToken()
 	}
+
+	// HACK: (;) handling of let statements
+	p.nextToken()
 
 	return stmt
 }

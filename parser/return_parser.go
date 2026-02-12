@@ -10,6 +10,8 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatment {
 
 	p.nextToken()
 
+	// TODO: parse expression
+
 	for !p.curTokenIs(token.SEMICOLON) {
 		p.nextToken()
 	}

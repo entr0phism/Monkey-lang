@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"strconv"
 
 	"monkeylang/ast"
 	"monkeylang/lexer"
@@ -9,12 +10,14 @@ import (
 )
 
 type Parser struct {
-	l *lexer.Lexer
+	l      *lexer.Lexer
+	errors []string
 
 	curToken  token.Token
 	peekToken token.Token
 
-	errors []string
+	prefixParseFns map[token.TokenType]prefixParseFn
+	infixParseFns  map[token.TokenType]infixParseFn
 }
 
 func New(l *lexer.Lexer) *Parser {
@@ -22,6 +25,12 @@ func New(l *lexer.Lexer) *Parser {
 		l:      l,
 		errors: []string{},
 	}
+
+	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
+	p.registerPrefix(token.IDENT, p.parseIdentifier)
+	p.registerPrefix(token.INT, p.parseIntegerLiteral)
+	p.registerPrefix(token.BANG, p.parsePrefixExpression)
+	p.registerPrefix(token.MINUS, p.parsePrefixExpression)
 
 	// read 2 token, so curToken and peekToken are both set
 	p.nextToken()
@@ -57,8 +66,26 @@ func (p *Parser) parseStatment() ast.Statement {
 	case token.RETURN:
 		return p.parseReturnStatement()
 	default:
+		return p.parseExpressionStatement()
+	}
+}
+
+func (p *Parser) parseIdentifier() ast.Expression {
+	return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+}
+
+func (p *Parser) parseIntegerLiteral() ast.Expression {
+	lit := &ast.IntegerLiteral{Token: p.curToken}
+
+	val, err := strconv.ParseInt(p.curToken.Literal, 0, 64)
+	if err != nil {
+		msg := fmt.Sprintf("couldn't parse %q as integer", p.curToken.Literal)
+		p.errors = append(p.errors, msg)
 		return nil
 	}
+
+	lit.Value = val
+	return lit
 }
 
 func (p *Parser) curTokenIs(t token.TokenType) bool {
